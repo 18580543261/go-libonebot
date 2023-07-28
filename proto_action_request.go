@@ -5,11 +5,11 @@ package libonebot
 
 import (
 	"errors"
+	"github.com/18580543261/go-libonebot/utils"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/tidwall/gjson"
 	"github.com/vmihailenco/msgpack/v5"
-	"libonebot/utils"
 )
 
 const (

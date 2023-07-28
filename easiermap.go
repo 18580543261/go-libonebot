@@ -1,7 +1,7 @@
 package libonebot
 
 import (
-	"libonebot/utils"
+	"github.com/18580543261/go-libonebot/utils"
 )
 
 // EasierMap 在 EasyMap 的基础上添加了 GetMessage 方法.
