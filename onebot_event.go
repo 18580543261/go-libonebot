@@ -41,7 +41,8 @@ type marshaledEvent struct {
 }
 
 func (ob *OneBot) openEventListenChan() <-chan marshaledEvent {
-	ch := make(chan marshaledEvent) // TODO: channel size
+	ch := make(chan marshaledEvent, 1) // TODO: channel size
+
 	ob.eventListenChansLock.Lock()
 	ob.eventListenChans = append(ob.eventListenChans, ch)
 	ob.eventListenChansLock.Unlock()

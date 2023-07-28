@@ -106,8 +106,8 @@ func (comm *wsComm) handle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func commRunWS(c ConfigCommWS, ob *OneBot, ctx context.Context, wg *sync.WaitGroup) {
-	defer wg.Done()
+func commRunWS(c ConfigCommWS, ob *OneBot, ctx context.Context, ch chan bool) {
+	defer ob.wg.Done()
 
 	addr := fmt.Sprintf("%s:%d", c.Host, c.Port)
 	ob.Logger.Infof("正在启动 WebSocket (%v)...", addr)

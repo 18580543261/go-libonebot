@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -78,8 +77,8 @@ func (comm *httpWebhookComm) post(event marshaledEvent) {
 	}
 }
 
-func commRunHTTPWebhook(c ConfigCommHTTPWebhook, ob *OneBot, ctx context.Context, wg *sync.WaitGroup) {
-	defer wg.Done()
+func commRunHTTPWebhook(c ConfigCommHTTPWebhook, ob *OneBot, ctx context.Context, ch chan bool) {
+	defer ob.wg.Done()
 
 	ob.Logger.Infof("正在启动 HTTP Webhook (%v)...", c.URL)
 

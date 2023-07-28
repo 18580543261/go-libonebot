@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	Version       = "0.6.0" // LibOneBot 版本号
+	Version       = "0.7.0" // LibOneBot 版本号
 	OneBotVersion = "12"    // OneBot 标准版本
 )
 
@@ -38,9 +38,10 @@ var (
 // NewOneBot 创建一个新的 OneBot 实例.
 //
 // 参数:
-//   impl: OneBot 实现名称, 不能为空
-//   self: OneBot 实例对应的机器人自身标识, 不能为 nil
-//   config: OneBot 配置, 不能为 nil
+//
+//	impl: OneBot 实现名称, 不能为空
+//	self: OneBot 实例对应的机器人自身标识, 不能为 nil
+//	config: OneBot 配置, 不能为 nil
 func NewOneBot(impl string, self *Self, config *Config) *OneBot {
 	if impl == "" {
 		panic("必须提供 OneBot 实现名称")
@@ -69,8 +70,9 @@ func NewOneBot(impl string, self *Self, config *Config) *OneBot {
 // NewOneBotMultiSelf 创建一个新的多机器人账号复用的 OneBot 实例.
 //
 // 参数:
-//   impl: OneBot 实现名称, 不能为空
-//   config: OneBot 配置, 不能为 nil
+//
+//	impl: OneBot 实现名称, 不能为空
+//	config: OneBot 配置, 不能为 nil
 func NewOneBotMultiSelf(impl string, config *Config) *OneBot {
 	if impl == "" {
 		panic("必须提供 OneBot 实现名称")
@@ -108,8 +110,11 @@ func (ob *OneBot) Run() {
 	ctx, cancel := context.WithCancel(context.Background())
 	ob.cancel = cancel
 
-	ob.startCommMethods(ctx)
-	ob.startHeartbeat(ctx)
+	ch := make(chan bool)
+
+	ob.startCommMethods(ctx, ch)
+	ob.startConnection(ctx, ch)
+	ob.startHeartbeat(ctx, ch)
 
 	ob.Logger.Infof("OneBot 已启动")
 	<-ctx.Done()
@@ -127,37 +132,53 @@ func (ob *OneBot) GetUserAgent() string {
 	return fmt.Sprintf("OneBot/%v LibOneBot/%v", OneBotVersion, Version)
 }
 
-func (ob *OneBot) startCommMethods(ctx context.Context) {
+func (ob *OneBot) startCommMethods(ctx context.Context, ch chan bool) {
 	if ob.Config.Comm.HTTP != nil {
 		for _, c := range ob.Config.Comm.HTTP {
 			ob.wg.Add(1)
-			go commRunHTTP(c, ob, ctx, ob.wg)
+			go commRunHTTP(c, ob, ctx, ch)
 		}
 	}
 
 	if ob.Config.Comm.HTTPWebhook != nil {
 		for _, c := range ob.Config.Comm.HTTPWebhook {
 			ob.wg.Add(1)
-			go commRunHTTPWebhook(c, ob, ctx, ob.wg)
+			go commRunHTTPWebhook(c, ob, ctx, ch)
 		}
 	}
 
 	if ob.Config.Comm.WS != nil {
 		for _, c := range ob.Config.Comm.WS {
 			ob.wg.Add(1)
-			go commRunWS(c, ob, ctx, ob.wg)
+			go commRunWS(c, ob, ctx, ch)
 		}
 	}
 
 	if ob.Config.Comm.WSReverse != nil {
 		for _, c := range ob.Config.Comm.WSReverse {
 			ob.wg.Add(1)
-			go commRunWSReverse(c, ob, ctx, ob.wg)
+			go commRunWSReverse(c, ob, ctx, ch)
 		}
 	}
 }
 
-func (ob *OneBot) startHeartbeat(ctx context.Context) {
+func (ob *OneBot) startConnection(ctx context.Context, ch chan bool) {
+	go func() {
+	loop:
+		for {
+			select {
+			case <-ch:
+				ob.Logger.Infof("开始发送connect事件")
+				event := MakeConnectMetaEvent(ob.Impl)
+				ob.Push(&event)
+			case <-ctx.Done(): // connection closed
+				break loop
+			}
+		}
+	}()
+}
+
+func (ob *OneBot) startHeartbeat(ctx context.Context, ch chan bool) {
 	if !ob.Config.Heartbeat.Enabled {
 		return
 	}

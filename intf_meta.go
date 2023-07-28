@@ -7,6 +7,33 @@ import "time"
 // 元事件
 // https://12.onebot.dev/interface/meta/events/
 
+type VersionStruct struct {
+	Impl          string `json:"impl"`
+	Version       string `json:"version"`
+	OnebotVersion string `json:"onebot_version"`
+}
+
+// ConnectMetaEvent 表示一个连接元事件.
+type ConnectMetaEvent struct {
+	MetaEvent
+	Version VersionStruct `json:"version"`
+}
+
+// MakeConnectMetaEvent 构造一个连接元事件.
+func MakeConnectMetaEvent(impl string) ConnectMetaEvent {
+	return ConnectMetaEvent{
+		MetaEvent: MakeMetaEvent(time.Now(), "connect"),
+		Version: VersionStruct{
+			Impl:          impl,
+			Version:       Version,
+			OnebotVersion: OneBotVersion,
+		},
+	}
+}
+
+// 元事件
+// https://12.onebot.dev/interface/meta/events/
+
 // HeartbeatMetaEvent 表示一个心跳元事件.
 type HeartbeatMetaEvent struct {
 	MetaEvent

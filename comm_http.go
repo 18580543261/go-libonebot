@@ -153,8 +153,8 @@ func (comm *httpComm) fail(w http.ResponseWriter, retcode int, errFormat string,
 	json.NewEncoder(w).Encode(failedResponse(retcode, err))
 }
 
-func commRunHTTP(c ConfigCommHTTP, ob *OneBot, ctx context.Context, wg *sync.WaitGroup) {
-	defer wg.Done()
+func commRunHTTP(c ConfigCommHTTP, ob *OneBot, ctx context.Context, ch chan bool) {
+	defer ob.wg.Done()
 
 	addr := fmt.Sprintf("%s:%d", c.Host, c.Port)
 	ob.Logger.Infof("正在启动 HTTP (%v)...", addr)

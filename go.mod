@@ -1,4 +1,4 @@
-module github.com/botuniverse/go-libonebot
+module libonebot
 
 go 1.16
 

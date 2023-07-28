@@ -1,7 +1,7 @@
 package libonebot
 
 import (
-	"github.com/botuniverse/go-libonebot/utils"
+	"libonebot/utils"
 )
 
 // EasierMap 在 EasyMap 的基础上添加了 GetMessage 方法.
@@ -12,7 +12,8 @@ type EasierMap struct {
 // EasierMapFromMap 从 map[string]interface{} 创建一个 EasierMap.
 //
 // 参数:
-//   m: 要封装的 map[string]interface{}, 不能为 nil
+//
+//	m: 要封装的 map[string]interface{}, 不能为 nil
 func EasierMapFromMap(m map[string]interface{}) EasierMap {
 	return EasierMapFromEasyMap(utils.EasyMapFromMap(m))
 }

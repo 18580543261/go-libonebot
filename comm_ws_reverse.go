@@ -23,7 +23,7 @@ type wsReverseComm struct {
 	isShutdown        *abool.AtomicBool
 }
 
-func (comm *wsReverseComm) connectAndServe(ctx context.Context) {
+func (comm *wsReverseComm) connectAndServe(ctx context.Context, ch chan bool) {
 	comm.ob.Logger.Debugf("WebSocket Reverse (%v) 开始连接", comm.url)
 
 	header := http.Header{}
@@ -38,6 +38,7 @@ func (comm *wsReverseComm) connectAndServe(ctx context.Context) {
 		return
 	}
 	comm.ob.Logger.Infof("WebSocket Reverse (%v) 连接成功", comm.url)
+	ch <- true
 
 	// protect concurrent writes to the same connection
 	connWriteLock := &sync.Mutex{}
@@ -103,8 +104,8 @@ loop:
 	wsClientWG.Wait() // wait the ws client goroutine to finish
 }
 
-func commRunWSReverse(c ConfigCommWSReverse, ob *OneBot, ctx context.Context, wg *sync.WaitGroup) {
-	defer wg.Done()
+func commRunWSReverse(c ConfigCommWSReverse, ob *OneBot, ctx context.Context, ch chan bool) {
+	defer ob.wg.Done()
 
 	ob.Logger.Infof("正在启动 WebSocket Reverse (%v)...", c.URL)
 
@@ -138,7 +139,7 @@ func commRunWSReverse(c ConfigCommWSReverse, ob *OneBot, ctx context.Context, wg
 	}()
 
 	for {
-		comm.connectAndServe(ctx)
+		comm.connectAndServe(ctx, ch)
 		if comm.isShutdown.IsSet() {
 			break
 		}

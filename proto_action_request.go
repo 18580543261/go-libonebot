@@ -6,10 +6,10 @@ package libonebot
 import (
 	"errors"
 
-	"github.com/botuniverse/go-libonebot/utils"
 	"github.com/mitchellh/mapstructure"
 	"github.com/tidwall/gjson"
 	"github.com/vmihailenco/msgpack/v5"
+	"libonebot/utils"
 )
 
 const (
